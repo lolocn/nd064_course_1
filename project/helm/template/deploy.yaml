@@ -17,7 +17,7 @@ spec:
         - name: regcred
       containers:
       - name: techtrends
-        image: charlyliu/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         ports:
         - containerPort: {{ .Values.containerPort }} 
         resources:
