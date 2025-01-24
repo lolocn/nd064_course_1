@@ -2,6 +2,7 @@ name: TechTrends - Package with Docker
 
 on:
   push:
+    branches: [ main ]
 
 jobs:
   docker:
@@ -26,4 +27,3 @@ jobs:
           context: "{{defaultContext}}:project/techtrends"
           push: true
           tags: charlyliu/techtrends:latest
-          
