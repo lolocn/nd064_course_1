@@ -5,7 +5,11 @@ metadata:
   namespace: {{ .Values.namespace.name }} 
 spec:
   ports:
-  - port: {{ .Values.service.port }} 
+  - port: {{ .Values.service.port | default 3111 }} 
     protocol: {{ .Values.service.protocol }} 
-    targetPort: {{ .Values.service.targetPort }} 
+    targetPort: {{ if .Values.service.targetPort }}
+                {{ .Values.service.targetPort }}
+                {{ else }}
+                {{ .Values.service.port | default 3111 }}
+                {{ end }}
   type: {{ .Values.service.type }} 
