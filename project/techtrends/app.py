@@ -80,12 +80,39 @@ def create():
 
 @app.route('/healthz')
 def status():
-    response = app.response_class(
-            response=json.dumps({"result":"OK - healthy"}),
-            status=200,
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='posts';")
+        table_exists = cursor.fetchone()
+        if table_exists:
+            response = app.response_class(
+                response=json.dumps({"result":"OK - healthy"}),
+                status=200,
+                mimetype='application/json'
+            )
+            app.logger.info('Status request successful')
+        else:
+            response = app.response_class(
+                response=json.dumps({"result":"ERROR - unhealthy"}),
+                status=500,
+                mimetype='application/json'
+            )
+            app.logger.error('Status request failed: posts table does not exist')
+            
+        cursor.close()
+        connection.close()
+    except Exception as e:
+        response = app.response_class(
+            response=json.dumps({"result":"ERROR - unhealthy"}),
+            status=500,
             mimetype='application/json'
-    )
-    app.logger.info('Status request successfull')
+        )
+        app.logger.error('Status request failed: ' + str(e))
+
+
+    
     return response
 
 @app.route('/metrics')

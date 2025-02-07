@@ -20,10 +20,23 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+           - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: charlyliu/techtrends
+          tags: |
+            type=sha,format=long
+            type=ref,event=branch
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.created=${{ steps.meta.outputs.created }}
       -
         name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: "{{defaultContext}}:project/techtrends"
           push: true
-          tags: charlyliu/techtrends:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
