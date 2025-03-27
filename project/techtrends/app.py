@@ -42,12 +42,12 @@ def index():
 @app.route('/<int:post_id>')
 def post(post_id):
     post = get_post(post_id)
-
-    app.logger.debug('Article "' + post['title'] + '" retrieved!')
+    
     if post is None:
       app.logger.debug('A non-existing article is accessed 404')
       return render_template('404.html'), 404
     else:
+      app.logger.debug('Article "' + post['title'] + '" retrieved!')
       return render_template('post.html', post=post)
 
 # Define the About Us page
