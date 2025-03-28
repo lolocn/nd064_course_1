@@ -5,8 +5,22 @@ from werkzeug.exceptions import abort
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+file_handler_STDOUT = logging.FileHandler('STDOUT')
+file_handler_STDOUT.setLevel(logging.DEBUG)
+
+file_handler_STDERR = logging.FileHandler('STDERR')
+file_handler_STDERR.setLevel(logging.ERROR)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+file_handler_STDOUT.setFormatter(formatter)
+file_handler_STDERR.setFormatter(formatter)
+
+logger.addHandler(file_handler_STDOUT)
+logger.addHandler(file_handler_STDERR)
 
 # Global variable to keep track of the number of database connections
 db_connection_count = 0
@@ -14,11 +28,15 @@ db_connection_count = 0
 # Function to get a database connection.
 # This function connects to database with the name `database.db`
 def get_db_connection():
-    global db_connection_count
-    connection = sqlite3.connect('database.db')
-    connection.row_factory = sqlite3.Row
-    db_connection_count += 1
-    return connection
+    try:
+        connection = sqlite3.connect('database.db')
+        connection.row_factory = sqlite3.Row
+        global db_connection_count
+        db_connection_count += 1
+        return connection
+    except Exception as e:
+        logger.error('Error connecting to database: ' + str(e))
+        return None
 
 # Function to get a post using its ID
 def get_post(post_id):
@@ -48,7 +66,7 @@ def post(post_id):
     post = get_post(post_id)
     
     if post is None:
-      logger.warn('Post not found!')
+      logger.error('Post not found!')
       return render_template('404.html'), 404
     else:
       logger.info('Article "' + post['title'] + '" retrieved!')
