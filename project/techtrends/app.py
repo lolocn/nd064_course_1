@@ -5,6 +5,9 @@ from werkzeug.exceptions import abort
 
 import logging
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 # Global variable to keep track of the number of database connections
 db_connection_count = 0
 
@@ -35,6 +38,7 @@ def index():
     connection = get_db_connection()
     posts = connection.execute('SELECT * FROM posts').fetchall()
     connection.close()
+    logger.info('The homepage has been retrieved.')
     return render_template('index.html', posts=posts)
 
 # Define how each individual article is rendered 
@@ -44,16 +48,16 @@ def post(post_id):
     post = get_post(post_id)
     
     if post is None:
-      app.logger.debug('A non-existing article is accessed 404')
+      logger.warn('Post not found!')
       return render_template('404.html'), 404
     else:
-      app.logger.debug('Article "' + post['title'] + '" retrieved!')
+      logger.info('Article "' + post['title'] + '" retrieved!')
       return render_template('post.html', post=post)
 
 # Define the About Us page
 @app.route('/about')
 def about():
-    app.logger.debug('"About Us" page is retrieved')
+    logger.info('"About Us" page is retrieved')
     return render_template('about.html')
 
 # Define the post creation functionality 
@@ -72,7 +76,7 @@ def create():
             connection.commit()
             connection.close()
 
-            app.logger.debug('Article "' + title + '" created!')
+            logger.info('Article "' + title + '" created!')
             
             return redirect(url_for('index'))
 
@@ -92,14 +96,14 @@ def status():
                 status=200,
                 mimetype='application/json'
             )
-            app.logger.info('Status request successful')
+            logger.info('Status request successful')
         else:
             response = app.response_class(
                 response=json.dumps({"result":"ERROR - unhealthy"}),
                 status=500,
                 mimetype='application/json'
             )
-            app.logger.error('Status request failed: posts table does not exist')
+            logger.info('Status request failed: posts table does not exist')
             
         cursor.close()
         connection.close()
@@ -109,7 +113,7 @@ def status():
             status=500,
             mimetype='application/json'
         )
-        app.logger.error('Status request failed: ' + str(e))
+        logger.error('Status request failed: ' + str(e))
 
 
     
@@ -128,7 +132,7 @@ def metrics():
             status=200,
             mimetype='application/json'
     )
-    app.logger.info('Metrics request successfull')
+    logger.info('Metrics request successfull')
     return response
 
 # start the application on port 3111
